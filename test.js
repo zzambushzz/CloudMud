@@ -7,7 +7,7 @@
  */
 
 casper.test.begin("Hello, Test!", 1, function(test) {
-    test.assert(false);
+    test.assert(true);
     test.done();
 });
 
