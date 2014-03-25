@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+	<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>MUD 2.0 Framework - Create/Login Account</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="MUD 2.0">
+        <meta name="author" content="Andrew Weber">
+
+        <!-- Twitter Card for website -->
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:site" content="@deviousdevs">
+        <meta name="twitter:creator" content="@zzambushzz">
+        <meta name="twitter:url" content="http://www.deviousdevs.com">
+        <meta name="twitter:title" content="MUD 2.0 Framework">
+        <meta name="twitter:description" content="MUD 2.0 Framework">
+        <meta name="twitter:image" content="">
+
+        <!-- Styles -->
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <link rel="stylesheet" href="css/bootstrap-responsive.css">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link href='http://fonts.googleapis.com/css?family=Marcellus+SC' rel='stylesheet' type='text/css'>
+
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="../js/html5shiv.js"></script>
+        <![endif]-->
+
+        <!-- Fav and touch icons -->
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+        <link rel="shortcut icon" href="ico/favicon.png">
+
+		
+		<script>
+			var player;
+			var water;
+			var container;
+			var canvas;
+			var stage;
+
+
+            // Keycodes - http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+			var KEYCODE_W = 87;
+			var KEYCODE_A = 65;
+			var KEYCODE_D = 68;
+			var KEYCODE_S = 83;
+			
+			document.onkeydown = handleKeyDown;
+			document.onkeyup = handleKeyUp;
+			
+			function init() {
+			
+				var stage = new createjs.Stage("canvas");
+
+				// Load Map
+                //http://lpc.opengameart.org/
+				initMapLoader(stage);
+
+                // Load UI
+				var txt = new createjs.Text();
+				txt.x = txt.y = 0;
+				txt.font = "12px Marcellus SC";
+				txt.color = "#000000";
+				txt.text = "Hello World";
+				stage.addChild(txt);
+
+                player = new Player();
+
+                // Reset Boolean Values
+				player.walkLeft;
+                player.walkRight;
+                player.walkDown;
+                player.walkUp;
+                player.idle = true;
+
+                // Set init character pose to idle
+				player.character.gotoAndPlay("idle");
+				player.x = 250;
+				player.y = 256;
+
+                // Add player to the map
+				stage.addChild(player);
+				
+				// Stage Timer
+
+                if (!createjs.Ticker.hasEventListener("tick")) {
+                    createjs.Ticker.addEventListener("tick", tick);
+                    createjs.Ticker.useRAF = true;
+                    createjs.Ticker.setFPS(60);
+
+                    }
+
+
+
+			
+			} // End init()
+			
+			function handleKeyDown(e) {
+					if (!e) { var e = window.event; }
+					switch (e.keyCode) {
+						case KEYCODE_A:
+                            if(player.idle)
+                            {
+                                player.character.gotoAndPlay("left");
+                                player.walkLeft = true;
+                                player.idle = false;
+
+                            }
+
+                            return false;
+						case KEYCODE_D:
+                            if(player.idle)
+                            {
+                                player.character.gotoAndPlay("right");
+                                player.walkRight = true;
+                                player.idle = false;
+
+                            }
+
+                            return false;
+						case KEYCODE_W:
+                            if(player.idle)
+                            {
+                                player.character.gotoAndPlay("up");
+                                player.walkUp = true;
+                                player.idle = false;
+
+                            }
+
+                            return false;
+						case KEYCODE_S:
+                            if(player.idle)
+                            {
+                                player.character.gotoAndPlay("down");
+                                player.walkDown = true;
+                                player.idle = false;
+
+                            }
+
+                            return false;
+					}
+            }
+				
+			function handleKeyUp(e) {
+					if (!e) { var e = window.event; }
+					switch (e.keyCode) {
+						case KEYCODE_A:
+                            player.character.gotoAndStop("idle");
+                            player.idle = true;
+                            player.walkLeft = false;
+                            player.vX = 0;
+                            break;
+						case KEYCODE_D:
+                            player.character.gotoAndStop("idle");
+                            player.idle = true;
+                            player.walkRight = false;
+                            player.vX = 0;
+                            break;
+						case KEYCODE_W:
+                            player.character.gotoAndStop("idle");
+                            player.idle = true;
+                            player.walkUp = false;
+                            player.vY = 0;
+                            break;
+						case KEYCODE_S:
+                            player.character.gotoAndStop("idle");
+                            player.idle = true;
+                            player.walkDown = false;
+                            player.vY = 0;
+                            break;
+					}
+			}
+
+            /*
+			function updatePlayer(elapsedTime) {
+			console.log("worked");
+				collisionTest(player, container);
+				if (player.walkLeft == true && player.collision == false)
+				{
+					player.x -= elapsedTime/1000*player.vX;
+				}
+				
+				if (player.walkRight == true && player.collision == false)
+				{
+					
+					player.x += elapsedTime/1000*player.vX;
+				}
+				
+				if (player.walkUp == true && player.collision == false)
+				{
+					player.y -= elapsedTime/1000*player.vX;
+				}
+				
+				if (player.walkDown == true && player.collision == false) 
+				{
+					player.y += elapsedTime/1000*player.vX;
+				}
+				
+				if (player.idle == true)
+				{
+					player.collision == false;
+					player.x = player.x;
+					player.y = player.y;
+				}
+				
+			}
+			*/
+			/*
+			function collisionTest(player, container) {
+				
+				var pt = player.localToLocal(32,48,container);
+					if (container.hitTest(pt.x, pt.y))
+					{
+						console.log("You hit water!");
+						player.collision = true;
+						
+					}
+					else
+					{ player.collision = false; }
+			}
+			*/
+			function tick(event) {
+               //console.log(event.getTime);
+					//Game Loop Here
+                if(player.walkLeft){
+                    player.walk("left");
+                }
+                if(player.walkRight){
+                    player.walk("right");
+                }
+                if(player.walkUp){
+                    player.walk("up");
+                }
+                if(player.walkDown){
+                    player.walk("down");
+                }
+
+                player.tick(event);
+			    stage.update(event);
+			}
+		
+
+		</script>
+		
+	</head>
+	<body onLoad="init();">
+        <!--[if lt IE 7]>
+        <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+
+        <div class="container">
+
+            <!-- Example row of columns -->
+            <div class="row">
+                <div class="span4">
+                    <h2>Jungle</h2>
+                    <p>You are in a jungle.  The ground in front of you is full or rocks and sand.  This is just blah blah text to fill the space.  </p>
+                    <p><a class="btn" href="#">Look at room &raquo;</a></p>
+                </div>
+                <div class="span4">
+                    <h2>Who's in the room</h2>
+                    <p>Andrew Weber</p>
+                    <p>Ben Soder</p>
+                </div>
+                <div class="span4">
+                    <h2>Heading</h2>
+                    <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+                    <p><a class="btn" href="#">View details &raquo;</a></p>
+                </div>
+            </div>
+
+            <!-- Main hero unit for a primary marketing message or call to action -->
+
+            <canvas class="hero-unit" id="canvas" width="500" height="500"/>
+
+
+        </div> <!-- /container -->
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/jquery-1.8.3.min.js"><\/script>')</script>
+        <script src="http://code.createjs.com/createjs-2013.12.12.min.js"></script>
+        <script src="renderer.js"></script>
+        <script src="js/player.js"></script>
+
+        <script>
+
+        </script>
+
+	</body>
+</html>
